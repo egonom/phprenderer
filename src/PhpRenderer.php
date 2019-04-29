@@ -151,11 +151,8 @@ class PhpRenderer
 	 *
 	 * @param $template
 	 * @param array $data
-	 *
-	 * @return mixed
-	 *
-	 * @throws \InvalidArgumentException
-	 * @throws \RuntimeException
+	 * @return false|mixed|string
+	 * @throws \Throwable
 	 */
 	public function fetch($template, array $data = []) {
 	
@@ -181,7 +178,7 @@ class PhpRenderer
 		}
 
 		if (!is_file($real_template_path.$template)) {
-			dve("View cannot render `".$real_template_path."$template` because the template does not exist");
+			dve("View cannot render `".$real_template_path."|||".$template."` because the template does not exist");
 			throw new \RuntimeException("View cannot render `".$real_template_path."$template` because the template does not exist");
 		}
 
