@@ -69,7 +69,13 @@ class PhpRenderer
 				strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest'
 			)
 		){
-			$output .= rv($this->used_templates, '', 4);
+			$this->used_templates = array_reverse($this->used_templates);
+			$output .= '<div style="width: 100vw; height: 150px;overflow: scroll;">';
+			foreach($this->used_templates AS $link){
+				$output .= $link.'<br>';
+			}
+			$output .= '</div>';
+			$output .= rv('', '', 4);
 			//$output .= rv($_COOKIE);
 		}
 
