@@ -139,7 +139,7 @@ class PhpRenderer
 	 */
 	public function setTemplatePath($templatePath)
 	{
-        	$this->templatePath = rtrim($templatePath, '/\\') . '/';
+		$this->templatePath = rtrim($templatePath, '/\\') . '/';
 	}
 
 	/**
@@ -154,13 +154,45 @@ class PhpRenderer
 	 * @return false|mixed|string
 	 * @throws \Throwable
 	 */
-	public function fetch($template, array $data = []) {
-	
-		$bt = debug_backtrace();
-		
-		//$this->used_templates[] = $template.'|'.$bt[0]['file'].'|'.$bt[0]['line'];
-		
-		$this->used_templates[$bt[0]['file'].'|'.$bt[0]['line']] = $template;
+	public function fetch($template, array $data = [], $do_not_use_templatehelper = false) {
+		if(!defined('DEFAULT_LOCAL_WEBROOT')) {
+			define('DEFAULT_LOCAL_WEBROOT', realpath(getcwd().DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR));
+		}
+
+		$real_template_path = '';
+
+		//ha abszolút path van megadva
+		if (!is_file(realpath($template))) {
+			$template = $this->templatePath.$template;
+		}
+
+		if (
+			!empty($_COOKIE['templateHelper']) && $_COOKIE['templateHelper'] == 1
+			&&
+			(
+				empty($_SERVER['HTTP_X_REQUESTED_WITH'])
+				||
+				strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest'
+			)
+		) {
+			$bt = debug_backtrace();
+
+			//$this->used_templates[] = $template.'|'.$bt[0]['file'].'|'.$bt[0]['line'];
+
+			$template_path = str_replace(realpath(getcwd().'/..'), '', $template);
+
+			$this->used_templates[$bt[0]['file'] . '|' . $bt[0]['line']] = '<a href="phpstorm://open?url=file://' .DEFAULT_LOCAL_WEBROOT. $template_path . '&line=1">TEMPLATE: ' . $template . '</a>';
+			if (!empty($this->getAttribute('lo_css'))) {
+				foreach ($this->getAttribute('lo_css') AS $css => $where) {
+					$this->used_templates[$css] = '<a href="phpstorm://open?url=file://'.DEFAULT_LOCAL_WEBROOT.'\\public\\' . $css . '&line=1">CSS: ' . $css . '</a>';
+				}
+			}
+			if (!empty($this->getAttribute('lo_js'))) {
+				foreach ($this->getAttribute('lo_js') AS $js) {
+					$this->used_templates[$js] = '<a href="phpstorm://open?url=file://'.DEFAULT_LOCAL_WEBROOT.'\\public\\' . $js . '&line=1">JS: ' . $js . '</a>';
+				}
+			}
+		}
 		if (isset($data['template'])) {
 			throw new \InvalidArgumentException("Duplicate template key found");
 		}
@@ -207,6 +239,8 @@ class PhpRenderer
 				)
 				&&
 				(!strstr($template, 'layout'.DIRECTORY_SEPARATOR.'body'))
+				&&
+				$do_not_use_templatehelper === false
 			){
 				$first_tag = '';
 				if(preg_match('(<(\w+)[^>]*>)', $output, $matches)){
@@ -243,6 +277,6 @@ class PhpRenderer
 	 */
 	protected function protectedIncludeScope ($template, array $data) {
 		extract($data);
-        include func_get_arg(0);
+		include func_get_arg(0);
 	}
 }
