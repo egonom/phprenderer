@@ -145,7 +145,7 @@ class PhpRenderer
 	 */
 	public function setTemplatePath($templatePath)
 	{
-		$this->templatePath = rtrim($templatePath, '/\\') . '/';
+		$this->templatePath = rtrim($templatePath, '/\\') . DIRECTORY_SEPARATOR;
 	}
 
 	/**
