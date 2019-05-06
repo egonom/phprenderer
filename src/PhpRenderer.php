@@ -70,11 +70,11 @@ class PhpRenderer
 			)
 		){
 			$this->used_templates = array_reverse($this->used_templates);
-			$output .= '<div style="width: 100vw; height: 150px;overflow: scroll;">';
+//			$output .= '<div style="width: 100vw; height: 500px;overflow: scroll;">';
 			foreach($this->used_templates AS $link){
 				$output .= $link.'<br>';
 			}
-			$output .= '</div>';
+//			$output .= '</div>';
 			$output .= rv('', '', 4);
 			//$output .= rv($_COOKIE);
 		}
