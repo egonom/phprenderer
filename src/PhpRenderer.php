@@ -164,14 +164,16 @@ class PhpRenderer
 		if(!defined('DEFAULT_LOCAL_WEBROOT')) {
 			define('DEFAULT_LOCAL_WEBROOT', realpath(getcwd().DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR));
 		}
-
+//dv(__DIR__);
+//dv(getcwd());
+//dv($template);
 		$real_template_path = '';
 
 		//ha abszolút path van megadva
 		if (!is_file(realpath($template))) {
-			$template = $this->templatePath.$template;
+			$template = realpath($this->templatePath.$template);
 		}
-
+//dv($template);
 		if (
 			!empty($_COOKIE['templateHelper']) && $_COOKIE['templateHelper'] == 1
 			&&
@@ -202,19 +204,19 @@ class PhpRenderer
 		if (isset($data['template'])) {
 			throw new \InvalidArgumentException("Duplicate template key found");
 		}
-
-		$real_template_path = $this->templatePath;
-		if (in_array($template[0], array(DIRECTORY_SEPARATOR, '\\', '/'))) {
-			$tmp = str_replace(array('\\', '/'), array(DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR), $this->templatePath);
-			$tmp = rtrim($tmp.DIRECTORY_SEPARATOR, '\\/');
-			$tmp_array = explode(DIRECTORY_SEPARATOR, $tmp);
-			array_pop($tmp_array);
-			$real_template_path = implode(DIRECTORY_SEPARATOR, $tmp_array);
-
-		} else {
-			$real_template_path = '';
-		}
-
+//dv($template);
+//		$real_template_path = $this->templatePath;
+//		if (in_array($template[0], array(DIRECTORY_SEPARATOR, '\\', '/'))) {
+//			$tmp = str_replace(array('\\', '/'), array(DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR), $this->templatePath);
+//			$tmp = rtrim($tmp.DIRECTORY_SEPARATOR, '\\/');
+//			$tmp_array = explode(DIRECTORY_SEPARATOR, $tmp);
+//			array_pop($tmp_array);
+//			$real_template_path = implode(DIRECTORY_SEPARATOR, $tmp_array);
+//
+//		} else {
+//			$real_template_path = '';
+//		}
+//dve($this->used_templates);
 		if (!is_file($real_template_path.$template)) {
 			dve("View cannot render `".$real_template_path."|||".$template."` because the template does not exist");
 			throw new \RuntimeException("View cannot render `".$real_template_path."$template` because the template does not exist");
