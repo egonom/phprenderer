@@ -74,7 +74,7 @@ class PhpRenderer
 			foreach($this->used_templates AS $link){
 				$output .= $link.'<br>';
 			}
-//			$output .= '</div>';
+
 			$output .= rv('', '', 4);
 			//$output .= rv($_COOKIE);
 		}
@@ -169,9 +169,17 @@ class PhpRenderer
 //dv($template);
 		$real_template_path = '';
 
+		$param_template = $template;
+//dv($template);
+//dv(realpath($template));
+
+		$this->templatePath = str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, $this->templatePath);
+		$template = str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, $template);
+
 		//ha abszolút path van megadva
 		if (!is_file(realpath($template))) {
-			$template = realpath($this->templatePath.$template);
+			$real_path = $this->templatePath.$template;
+			$template = realpath($real_path);
 		}
 //dv($template);
 		if (
@@ -182,6 +190,8 @@ class PhpRenderer
 				||
 				strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest'
 			)
+			&&
+			(!strstr($template, 'layout'.DIRECTORY_SEPARATOR.'body'))
 		) {
 			$bt = debug_backtrace();
 
@@ -218,7 +228,16 @@ class PhpRenderer
 //		}
 //dve($this->used_templates);
 		if (!is_file($real_template_path.$template)) {
-			dve("View cannot render `".$real_template_path."|||".$template."` because the template does not exist");
+			dv(array(
+				'$this->templatePath' => $this->templatePath,
+				'$param_template' => $param_template,
+				'$real_path' => $real_path,
+				'__DIR__' => __DIR__,
+				'getcwd()' => getcwd(),
+				'$template' => $template,
+				'$real_template_path' => $real_template_path,
+			));
+//			dve("View cannot render `".$real_template_path."|||".$template."` because the template does not exist");
 			throw new \RuntimeException("View cannot render `".$real_template_path."$template` because the template does not exist");
 		}
 
