@@ -238,7 +238,7 @@ class PhpRenderer
 				'$real_template_path' => $real_template_path,
 			));
 //			dve("View cannot render `".$real_template_path."|||".$template."` because the template does not exist");
-			throw new \RuntimeException("View cannot render `".$real_template_path."$template` because the template does not exist");
+			throw new \RuntimeException("View cannot render `".$real_path.' | '.$real_template_path."$template` because the template does not exist");
 		}
 
 
