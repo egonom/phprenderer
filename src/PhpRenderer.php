@@ -111,9 +111,21 @@ class PhpRenderer
 	 * @param $value
 	 */
 	public function addAttribute($key, $value) {
-		if(is_array($value) && is_array($this->attributes[$key])){
-			foreach($value AS $k => $v){
-				$this->attributes[$key][$k] = $v;
+		if (!isset($this->attributes[$key])) {
+			$this->attributes[$key] = null;
+		}
+		if(is_array($value)){
+
+			if(is_array($this->attributes[$key])) {
+				foreach ($value as $k => $v) {
+					if ((int) $k === $k) {
+						$this->attributes[$key][] = $v;
+					} else {
+						$this->attributes[$key][$k] = $v;
+					}
+				}
+			} else {
+				$this->attributes[$key][] = $value;
 			}
 		} else {
 			$this->attributes[$key] = $value;
