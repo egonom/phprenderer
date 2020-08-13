@@ -113,7 +113,7 @@ class PhpRenderer
 	public function addAttribute($key, $value) {
 		if(is_array($value) && is_array($this->attributes[$key])){
 			foreach($value AS $k => $v){
-				$this->attributes[$key][$v] = $v;
+				$this->attributes[$key][$k] = $v;
 			}
 		} else {
 			$this->attributes[$key] = $value;
