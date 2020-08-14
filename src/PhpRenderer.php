@@ -116,7 +116,7 @@ class PhpRenderer
 		}
 		if(is_array($value)){
 
-			if(is_array($this->attributes[$key])) {
+			if(is_array($this->attributes[$key]) || is_null($this->attributes[$key])) {
 				foreach ($value as $k => $v) {
 					if ((int) $k === $k) {
 						$this->attributes[$key][] = $v;
