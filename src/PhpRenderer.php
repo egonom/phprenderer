@@ -70,12 +70,21 @@ class PhpRenderer
 			)
 		){
 			$this->used_templates = array_reverse($this->used_templates);
-//			$output .= '<div style="width: 100vw; height: 500px;overflow: scroll;">';
+			$output .= '<style>#renderInfo{border-top:3px solid red;width: 100vw; height: 32px;overflow: scroll;position: fixed; left: 0px; bottom: 0px; background-color: #ccc; z-index: 10000;}#renderInfo.on{height: 500px;}</style>';
+			$output .= '<div id="renderInfo"><script type="application/javascript">
+													$(document).ready(function () {
+														$("#renderInfo").on("click", function(){
+															$(this).toggleClass("on");
+														});
+													});</script>
+						
+			';
 			foreach($this->used_templates AS $link){
 				$output .= $link.'<br>';
 			}
 
 			$output .= rv('', '', 4);
+			$output .= '</div>';
 			//$output .= rv($_COOKIE);
 		}
 
@@ -117,9 +126,14 @@ class PhpRenderer
 		if(is_array($value)){
 
 			if(is_array($this->attributes[$key]) || is_null($this->attributes[$key])) {
+
 				foreach ($value as $k => $v) {
 					if ((int) $k === $k) {
-						$this->attributes[$key][] = $v;
+						if(is_scalar($v)){
+							$this->attributes[$key][$v] = $v;
+						} else {
+							$this->attributes[$key][$k] = $v;
+						}
 					} else {
 						$this->attributes[$key][$k] = $v;
 					}
