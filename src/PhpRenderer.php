@@ -222,8 +222,8 @@ class PhpRenderer
 				||
 				strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest'
 			)
-			&&
-			(!strstr($template, 'layout'.DIRECTORY_SEPARATOR.'body'))
+//			&&
+//			(!strstr($template, 'layout'.DIRECTORY_SEPARATOR.'body'))
 		) {
 			$bt = debug_backtrace();
 
@@ -296,8 +296,8 @@ class PhpRenderer
 					||
 					strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest'
 				)
-				&&
-				(!strstr($template, 'layout'.DIRECTORY_SEPARATOR.'body'))
+//				&&
+//				(!strstr($template, 'layout'.DIRECTORY_SEPARATOR.'body'))
 				&&
 				$do_not_use_templatehelper === false
 			){
