@@ -31,9 +31,9 @@ class PhpRenderer
 	 * @param string $templatePath
 	 * @param array $attributes
 	 */
-	public function __construct($templatePath = "", $attributes = [])
+	public function __construct($templatePath = null, $attributes = [])
 	{
-		$this->templatePath = rtrim($templatePath, '/\\') . '/';
+		$this->templatePath = is_null($templatePath) ? (__DIR__.'/') : (rtrim($templatePath, '/\\') . '/');
 		$this->attributes = $attributes;
 	}
 
@@ -53,7 +53,7 @@ class PhpRenderer
 	 * @throws \InvalidArgumentException
 	 * @throws \RuntimeException
 	 */
-	public function render(ResponseInterface $response, $template, array $data = [])
+	public function render(ResponseInterface $response, $template = 'blank.php', array $data = [])
 	{
 		if (!empty($this->getAttribute('lo_css'))) {
 			if(isDev()){
@@ -182,12 +182,10 @@ class PhpRenderer
 	 * @return false|mixed|string
 	 * @throws \Throwable
 	 */
-	public function fetch($template, array $data = [], $do_not_use_templatehelper = false) {
+	public function fetch($template = 'blank.php', array $data = [], $do_not_use_templatehelper = false) {
 		if(!defined('DEFAULT_LOCAL_WEBROOT')) {
 			define('DEFAULT_LOCAL_WEBROOT', realpath(getcwd().DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR));
 		}
-
-		$real_template_path = '';
 
 		$param_template = $template;
 
@@ -195,9 +193,16 @@ class PhpRenderer
 		$template = str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, $template);
 
 		//ha abszolút path van megadva
-		if (!is_file(realpath($template))) {
-			$real_path = $this->templatePath.$template;
-			$template = realpath($real_path);
+		if (realpath($template)) {
+			$template = realpath($template);
+			if (!is_file($template)) {
+				$real_path = $this->templatePath.$template;
+				$template = realpath($real_path);
+			} else {
+				$real_path = $template;
+			}
+		} else {
+			$real_path = realpath($this->templatePath.$template);
 		}
 
 		if (
@@ -211,34 +216,24 @@ class PhpRenderer
 		) {
 			$bt = debug_backtrace();
 
-
 			$template_path = str_replace(realpath(getcwd().'/..'), '', $template);
 
 			$this->used_templates[$bt[0]['file'] . '|' . $bt[0]['line']] = '<a href="phpstorm://open?url=file://' .DEFAULT_LOCAL_WEBROOT. $template_path . '&line=1">TEMPLATE: ' . $template . '</a>';
 		}
+
 		if (isset($data['template'])) {
 			throw new \InvalidArgumentException("Duplicate template key found");
 		}
 
-		if (!is_file($real_template_path.$template)) {
-			dv(array(
-				'$this->templatePath' => $this->templatePath,
-				'$param_template' => $param_template,
-				'$real_path' => $real_path,
-				'__DIR__' => __DIR__,
-				'getcwd()' => getcwd(),
-				'$template' => $template,
-				'$real_template_path' => $real_template_path,
-			));
-
-			throw new \RuntimeException("View cannot render `".$real_path.' | '.$real_template_path."$template` because the template does not exist");
+		if (!is_file($real_path)) {
+			throw new \RuntimeException("View cannot render `".$real_path.' | '.$template.'` because the template does not exist');
 		}
 
 		$data = array_merge($this->attributes, $data);
 
 		try {
 			ob_start();
-			$this->protectedIncludeScope($real_template_path . $template, $data);
+			$this->protectedIncludeScope($real_path, $data);
 			$output = ob_get_clean();
 
 			if (
