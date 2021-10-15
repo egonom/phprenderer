@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2011-2015 Josh Lockhart
  * @license   https://github.com/slimphp/PHP-View/blob/master/LICENSE.md (MIT License)
  */
-namespace Slim\Views;
+namespace Egonom\PhpRenderer;
 
 use \InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
@@ -59,6 +59,23 @@ class PhpRenderer
 	 */
 	public function render(ResponseInterface $response, $template, array $data = [])
 	{
+		if (!empty($this->getAttribute('lo_css'))) {
+			if(isDev()){
+				foreach ($this->getAttribute('lo_css') AS $css => $where) {
+					$this->used_templates[$css] = '<a href="phpstorm://open?url=file://'.DEFAULT_LOCAL_WEBROOT.'\\public\\' . $css . '&line=1">CSS: ' . $css . '</a>';
+				}
+			}
+			$this->compactCss();
+		}
+		if (!empty($this->getAttribute('lo_js'))) {
+			if(isDev()){
+				foreach ($this->getAttribute('lo_js') AS $js) {
+					$this->used_templates[$js] = '<a href="phpstorm://open?url=file://'.DEFAULT_LOCAL_WEBROOT.'\\public\\' . $js . '&line=1">JS: ' . $js . '</a>';
+				}
+			}
+			$this->compactJs();
+		}
+
 		$output = $this->fetch($template, $data);
 		if (
 			!empty($_COOKIE['templateHelper']) && $_COOKIE['templateHelper'] == 1
@@ -120,30 +137,7 @@ class PhpRenderer
 	 * @param $value
 	 */
 	public function addAttribute($key, $value) {
-		if (!isset($this->attributes[$key])) {
-			$this->attributes[$key] = null;
-		}
-		if(is_array($value)){
-
-			if(is_array($this->attributes[$key]) || is_null($this->attributes[$key])) {
-
-				foreach ($value as $k => $v) {
-					if ((int) $k === $k) {
-						if(is_scalar($v)){
-							$this->attributes[$key][$v] = $v;
-						} else {
-							$this->attributes[$key][$k] = $v;
-						}
-					} else {
-						$this->attributes[$key][$k] = $v;
-					}
-				}
-			} else {
-				$this->attributes[$key][] = $value;
-			}
-		} else {
-			$this->attributes[$key] = $value;
-		}
+		$this->attributes[$key] = $value;
 	}
 
 	/**
@@ -196,14 +190,10 @@ class PhpRenderer
 		if(!defined('DEFAULT_LOCAL_WEBROOT')) {
 			define('DEFAULT_LOCAL_WEBROOT', realpath(getcwd().DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR));
 		}
-//dv(__DIR__);
-//dv(getcwd());
-//dv($template);
+
 		$real_template_path = '';
 
 		$param_template = $template;
-//dv($template);
-//dv(realpath($template));
 
 		$this->templatePath = str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, $this->templatePath);
 		$template = str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, $template);
@@ -213,7 +203,7 @@ class PhpRenderer
 			$real_path = $this->templatePath.$template;
 			$template = realpath($real_path);
 		}
-//dv($template);
+
 		if (
 			!empty($_COOKIE['templateHelper']) && $_COOKIE['templateHelper'] == 1
 			&&
@@ -222,43 +212,18 @@ class PhpRenderer
 				||
 				strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest'
 			)
-//			&&
-//			(!strstr($template, 'layout'.DIRECTORY_SEPARATOR.'body'))
 		) {
 			$bt = debug_backtrace();
 
-			//$this->used_templates[] = $template.'|'.$bt[0]['file'].'|'.$bt[0]['line'];
 
 			$template_path = str_replace(realpath(getcwd().'/..'), '', $template);
 
 			$this->used_templates[$bt[0]['file'] . '|' . $bt[0]['line']] = '<a href="phpstorm://open?url=file://' .DEFAULT_LOCAL_WEBROOT. $template_path . '&line=1">TEMPLATE: ' . $template . '</a>';
-			if (!empty($this->getAttribute('lo_css'))) {
-				foreach ($this->getAttribute('lo_css') AS $css => $where) {
-					$this->used_templates[$css] = '<a href="phpstorm://open?url=file://'.DEFAULT_LOCAL_WEBROOT.'\\public\\' . $css . '&line=1">CSS: ' . $css . '</a>';
-				}
-			}
-			if (!empty($this->getAttribute('lo_js'))) {
-				foreach ($this->getAttribute('lo_js') AS $js) {
-					$this->used_templates[$js] = '<a href="phpstorm://open?url=file://'.DEFAULT_LOCAL_WEBROOT.'\\public\\' . $js . '&line=1">JS: ' . $js . '</a>';
-				}
-			}
 		}
 		if (isset($data['template'])) {
 			throw new \InvalidArgumentException("Duplicate template key found");
 		}
-//dv($template);
-//		$real_template_path = $this->templatePath;
-//		if (in_array($template[0], array(DIRECTORY_SEPARATOR, '\\', '/'))) {
-//			$tmp = str_replace(array('\\', '/'), array(DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR), $this->templatePath);
-//			$tmp = rtrim($tmp.DIRECTORY_SEPARATOR, '\\/');
-//			$tmp_array = explode(DIRECTORY_SEPARATOR, $tmp);
-//			array_pop($tmp_array);
-//			$real_template_path = implode(DIRECTORY_SEPARATOR, $tmp_array);
-//
-//		} else {
-//			$real_template_path = '';
-//		}
-//dve($this->used_templates);
+
 		if (!is_file($real_template_path.$template)) {
 			dv(array(
 				'$this->templatePath' => $this->templatePath,
@@ -269,18 +234,10 @@ class PhpRenderer
 				'$template' => $template,
 				'$real_template_path' => $real_template_path,
 			));
-//			dve("View cannot render `".$real_template_path."|||".$template."` because the template does not exist");
+
 			throw new \RuntimeException("View cannot render `".$real_path.' | '.$real_template_path."$template` because the template does not exist");
 		}
 
-
-		/*
-		foreach ($data as $k=>$val) {
-			if (in_array($k, array_keys($this->attributes))) {
-				throw new \InvalidArgumentException("Duplicate key found in data and renderer attributes. " . $k);
-			}
-		}
-		*/
 		$data = array_merge($this->attributes, $data);
 
 		try {
@@ -296,8 +253,6 @@ class PhpRenderer
 					||
 					strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest'
 				)
-//				&&
-//				(!strstr($template, 'layout'.DIRECTORY_SEPARATOR.'body'))
 				&&
 				$do_not_use_templatehelper === false
 			){
@@ -323,10 +278,6 @@ class PhpRenderer
 			ob_end_clean();
 			throw $e;
 		}
-
-
-
-
 		return $output;
 	}
 
@@ -337,5 +288,111 @@ class PhpRenderer
 	protected function protectedIncludeScope ($template, array $data) {
 		extract($data);
 		include func_get_arg(0);
+	}
+
+	function compactCss(){
+		$groups = array();
+		$tmp_array = array();
+		foreach ($this->getAttribute('lo_css') AS $css => $where){
+			if (!empty($groups[$where])) {
+				$groups[$where][] = $css;
+			} else {
+				$groups[$where] = array($css);
+			}
+		}
+
+		foreach($groups AS $where => $css_s){
+			$index = md5(implode('', $css_s).$where.CSS_VERSION);
+			$css_cache_path = getcwd().'/_cache/'.$index;
+
+			if(is_file($css_cache_path)){
+				$tmp_array['/_cache/'.$index] = $where;
+			} else {
+				$fp1 = fopen($css_cache_path, 'a+');
+				foreach($css_s AS $path){
+
+					unset($this->attributes['lo_css'][$path]);
+					if(substr(strtolower($path), 0, 2) == '//'){
+						$path = 'https:'.$path;
+					}
+
+					$path = strstr(strtolower($path), 'http') ? $path : (getcwd().$path);
+					$file2 = " \n ".str_replace(array("\n", "\r"), ' ', file_get_contents($path));
+					fwrite($fp1, $file2);
+				}
+				fclose($fp1);
+				$tmp_array['/_cache/'.$index] = $where;
+
+			}
+
+		}
+		$this->attributes['lo_css'] = $tmp_array;
+//dv($this->getAttribute('lo_css'));
+	}
+	function compactJs(){
+		$tmp_array = array();
+
+		$index = md5(implode('', array_values($this->getAttribute('lo_js')) ).CSS_VERSION);//.date('is');
+		$js_cache_path = getcwd().'/_cache/'.$index;
+
+		$tmp_array['/_cache/'.$index] = '/_cache/'.$index;
+		if(!is_file($js_cache_path)){
+
+
+			$mem_limit = ini_get('memory_limit');
+			ini_set('display_errors', false);
+			ini_set('memory_limit', '1G');
+
+			$fp1 = fopen($js_cache_path, 'a+');
+			foreach (array_values($this->getAttribute('lo_js')) AS $index2 => $path){
+				if(substr(strtolower($path), 0, 2) == '//'){
+					$path = 'https:'.$path;
+				}
+				$path = strstr(strtolower($path), 'http') ? $path : (getcwd().$path);
+
+				$file2 = " \n ".file_get_contents($path);
+				$file2 = preg_replace('/^[\t\s]+(.*)$/m', ' $1 ', $file2);
+				$file2 = preg_replace('/(^\/\/.*)$/m', ' ', $file2);
+
+				$file2 = $this->cleanRN($file2);
+
+				fwrite($fp1, " \n ".$file2." \n ");
+
+			}
+			fclose($fp1);
+			$tmp_array['/_cache/'.$index] = '/_cache/'.$index;
+
+			ini_set('memory_limit', $mem_limit);
+
+		}
+		$this->attributes['lo_js'] = $tmp_array;
+	}
+
+	function cleanRN($file2){
+		$clean = '';
+		$matches = explode("\r", $file2);
+		if(count($matches) > 3) {
+			foreach($matches AS $line){
+				if(strstr($line, '//')) {
+					$line = $line."\r";
+				}
+				$clean .= (' '.$line.' ');
+			}
+			$file2 = $clean;
+		}
+
+		$clean = '';
+		$matches = explode("\n", $file2);
+		if(count($matches) > 3) {
+			foreach($matches AS $line){
+				if(strstr($line, '//')) {
+					$line = $line."\n";
+				}
+				$clean .= (' '.$line.' ');
+			}
+			$file2 = $clean;
+		}
+
+		return $file2;
 	}
 }
