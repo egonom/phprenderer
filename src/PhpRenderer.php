@@ -1,11 +1,7 @@
 <?php
-/**
- * Slim Framework (http://slimframework.com)
- *
- * @link      https://github.com/slimphp/PHP-View
- * @copyright Copyright (c) 2011-2015 Josh Lockhart
- * @license   https://github.com/slimphp/PHP-View/blob/master/LICENSE.md (MIT License)
- */
+
+declare(strict_types=1);
+
 namespace Egonom\PhpRenderer;
 
 use \InvalidArgumentException;
