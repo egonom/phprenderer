@@ -1,13 +1,12 @@
 {
-  "name": "egonom/phprenderer",
+  "name": "Egonom/PhpRenderer",
   "type" : "library",
   "description": "Render PHP view scripts into a PSR-7 Response object.",
   "keywords": ["slim","framework","view","template","php","phtml","renderer"],
   "license": "MIT",
   "authors": [
     {
-      "name": "Glenn Eggleton",
-      "email": "geggleto@gmail.com"
+      "name": "Szalai László"
     }
   ],
   "require": {
@@ -15,7 +14,7 @@
   },
     "autoload": {
         "psr-4": {
-            "Slim\\Views\\": "src"
+            "Egonom\\PhpRenderer\\": "src"
         }
     },
   "require-dev": {
