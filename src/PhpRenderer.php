@@ -33,7 +33,7 @@ class PhpRenderer
 	 */
 	public function __construct($templatePath = null, $attributes = [])
 	{
-		$this->templatePath = is_null($templatePath) ? (__DIR__.'/') : (rtrim($templatePath, '/\\') . '/');
+		$this->templatePath = is_null($templatePath) ? (realpath(getcwd().'/../src').'/') : (rtrim($templatePath, '/\\') . '/');
 		$this->attributes = $attributes;
 	}
 
